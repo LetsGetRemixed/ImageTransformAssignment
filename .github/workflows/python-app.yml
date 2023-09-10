@@ -1,0 +1,41 @@
+name: Run Tests and Push Output Files
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+        persist-credentials: false  # Required to make GitHub Pages deployment work correctly
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.11
+
+    - name: Install pytest
+      run: pip install pytest opencv-python numpy matplotlib
+
+    - name: Run tests and generate output
+      run: pytest
+
+    - name: Set up Git credentials
+      run: git remote set-url origin https://${{ secrets.ORG_GITHUB_TOKEN }}@github.com/${{ github.repository }}    
+
+    - name: Commit and push output files
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add output/  # Replace with your actual output file name(s)
+        git commit -m "Add output files" -a || echo "No changes to commit"
+        git push
+      env:
+        ORG_GITHUB_TOKEN: ${{ secrets.ORG_GITHUB_TOKEN }}

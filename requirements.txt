@@ -1,0 +1,4 @@
+pytest
+opencv-python
+numpy
+matplotlib
